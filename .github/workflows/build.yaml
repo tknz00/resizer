@@ -1,0 +1,35 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        arch: [x64, x86]
+
+    steps:
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v7
+
+      - name: Setup MSVC ${{ matrix.arch }}
+        id: msvc
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.arch }}
+
+      - name: Compile ${{ matrix.arch }} executable
+        id: compile
+        run: cl win.cpp User32.lib /link /entry:main /out:resizer_${{ matrix.arch }}.exe
+
+      - name: Upload ${{ matrix.arch }} artifact
+        id: upload
+        uses: actions/upload-artifact@v7
+        with:
+          name: resizer-${{ matrix.arch }}
+          path: resizer_${{ matrix.arch }}.exe
